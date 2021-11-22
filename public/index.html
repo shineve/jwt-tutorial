@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://unpkg.com/vue@next"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-json-pretty@2.0.6/lib/vue-json-pretty.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/vue-json-pretty@2.0.6/lib/styles.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <style lang="css">
+      .vjs-value__string {
+        color: blue;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <vue-json-pretty :data="content"> </vue-json-pretty>
+      <br />
+      <h3>document.cookies</h3>
+      <vue-json-pretty :data="cookies"> </vue-json-pretty>
+      <h3>You can discover more cookies through dev tools</h3>
+    </div>
+
+    <script>
+      const { ref, createApp, onMounted } = Vue;
+
+      createApp({
+        components: {
+          VueJsonPretty: VueJsonPretty.default,
+        },
+        setup() {
+          let content = ref({});
+          let cookies = listCookies();
+
+          function listCookies() {
+            return document.cookie.split('; ').reduce((prev, current) => {
+              const [name, ...value] = current.split('=');
+              prev[name] = decodeURIComponent(value.join('='));
+              return prev;
+            }, {});
+          }
+
+          onMounted(async () => {
+            axios
+              .get('http://localhost:3000/login', { withCredentials: true })
+              .then(function (response) {
+                const data = {};
+                data.requestHeader = response.data.requestHeader;
+                data.responseHeader = response.headers;
+                content.value = data;
+              });
+          });
+
+          return { content, cookies };
+        },
+      }).mount('#app');
+    </script>
+  </body>
+</html>
