@@ -12,57 +12,53 @@ const auth = require('./auth');
 require('dotenv').config();
 
 fastify.register(cookie, { secret: process.env.SECRET_KEY });
-fastify.register(require('fastify-static'), {
-  root: path.join(__dirname, 'public'),
-  prefix: '/public/', // optional: default '/'
-});
-fastify.register(require('fastify-cors'), {
-  credentials: true,
-  origin: ['http://localhost:3000'],
-});
 
 fastify.get('/', async function (req, res) {
   return res.sendFile('index.html');
 });
 
-fastify.post('/register', async (req, res) => {
-  let password_hash;
-  const { username, password } = value;
-
-  // generate password_hash
+fastify.get('/api/test', async function (req, res) {
+  const token = req.cookies.jwt;
   try {
-    password_hash = await bcrypt.hash(password, 10);
-  } catch (e) {
-    console.error(e);
-    throw new Error("Unable to generate 'password hash'");
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    return res.send(decoded);
+  } catch (err) {
+    return res.status(401).send('Unauthorized');
   }
-  
 });
 
 fastify.post('/login', (req, res) => {
   // 1. validate login infos before generate jwt token
   // 2. validation success, get user infos from database
+
   // 3. generate jwt token with user infos
   const userInfo = {};
+  // 4. generate jwt token with user infos
   const { jwtToken, jwtTokenExpiry } = auth.generateJwtToken(userInfo);
 
+  // 5. generate and save refresh token to database，so that we can revoke the refresh token when necessary
   const refreshToken = uuid.v4();
-
-  // 4. save refresh token to database，so that we can revoke the refresh token when necessary
   const refreshTokenData = {
     // userId: user.id,
     refreshToken,
     expriedAt: dayjs().add(process.env.REFRESH_TOKEN_EXPIRES, 'minute').format('x'), // convert from minutes to milli seconds
   };
 
-  // 5. save refreshToken token to cookie
-  res.cookie('refreshToken', refreshToken, {
+  // 6. set refresh token to client's cookie
+  res.setCookie('refreshToken', refreshToken, {
     maxAge: process.env.REFRESH_TOKEN_EXPIRES * 60, // convert from minute to seconds
     httpOnly: true,
     secure: false,
   });
 
-  // 6. send jwt token to client
+  // 7. set jwt token to client's cookie
+  res.setCookie('jwt', jwtToken, {
+    maxAge: process.env.JWT_TOKEN_EXPIRES * 60, // convert from minute to seconds
+    httpOnly: true,
+    secure: false,
+  });
+
+  // 8. send jwt token to client
   res.send({
     jwtToken,
     jwtTokenExpiry,
@@ -75,11 +71,18 @@ fastify.post('/refresh-token', async (req, res, next) => {
   // 2. check if refresh token is valid
 
   // 3. retrive user data from database
-  // 4. generate jwt token with user infos
   const userInfo = {};
+  // 4. generate jwt token with user infos
   const { jwtToken, jwtTokenExpiry } = auth.generateJwtToken(userInfo);
 
-  // 5. send jwt token to client
+  // 5. set jwt token to client's cookie
+  res.setCookie('jwt', jwtToken, {
+    maxAge: process.env.JWT_TOKEN_EXPIRES * 60, // convert from minute to seconds
+    httpOnly: true,
+    secure: false,
+  });
+
+  // 6. send jwt token to client
   res.send({
     jwtToken,
     jwtTokenExpiry,
@@ -87,13 +90,21 @@ fastify.post('/refresh-token', async (req, res, next) => {
 });
 
 fastify.post('/logout', async (req, res, next) => {
-  // 1. remove refresh token from database
-  // 2. remove refresh token from cookie
+  // 1. remove refresh token from database / add refresh token to revoked list
+  // 2. remove refresh token from client's cookie
 
-  res.cookie('refreshToken', '', {
+  // 3. set refresh token to client's cookie
+  res.setCookie('refreshToken', '', {
     httpOnly: true,
     maxAge: 0,
   });
+
+  // 4. set jwt token to client's cookie
+  res.setCookie('jwt', '', {
+    maxAge: process.env.JWT_TOKEN_EXPIRES * 60, // convert from minute to seconds
+    maxAge: 0,
+  });
+
   res.send('OK');
 });
 

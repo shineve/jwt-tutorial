@@ -10,9 +10,7 @@ module.exports = {
         jti: uuid.v4(),
         iat: Number(dayjs().format('x')), // issued at
         exp: jwtTokenExpiry, // expiration time
-        // other infos
         ...user,
-        // userId: user.id,
       },
       process.env.JWT_SECRET_KEY,
     );
