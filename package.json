@@ -1,21 +1,22 @@
 {
-  "name": "jwt-tutorial",
+  "private": true,
+  "name": "my-app",
   "version": "1.0.0",
-  "description": "",
-  "main": "server.js",
-  "dependencies": {
-    "dayjs": "^1.10.7",
-    "dotenv": "^10.0.0",
-    "fastify": "^3.24.0",
-    "fastify-cookie": "^5.3.2",
-    "jsonwebtoken": "^8.5.1",
-    "uuid": "^8.3.2"
-  },
-  "devDependencies": {},
+  "description": "A template for kick starting a Cloudflare Workers project",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "format": "prettier --write '**/*.{js,css,json,md}'"
   },
-  "author": "",
-  "license": "ISC"
+  "author": "shineve",
+  "license": "MIT",
+  "devDependencies": {
+    "cookie": "^0.4.1",
+    "dayjs": "^1.10.7",
+    "itty-router": "^2.4.5",
+    "jsonwebtoken": "^8.5.1",
+    "prettier": "^1.18.2",
+    "uuid": "^8.3.2"
+  },
+  "dependencies": {}
 }

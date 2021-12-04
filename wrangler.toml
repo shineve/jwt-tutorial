@@ -1,0 +1,17 @@
+name = "jwt-tutorial"
+type = "webpack"
+
+account_id = "378608977a3ffa51ced7a7aba255f9f0"
+route = ""
+workers_dev = true
+zone_id = ""
+
+[vars]
+# for testing only
+JWT_SECRET_KEY = "test123"
+PORT = 3000
+SECRET_KEY = "test456"
+# expire after 60 days, in minutes
+REFRESH_TOKEN_EXPIRES = 86400
+# 15 minutes
+JWT_TOKEN_EXPIRES = 15
